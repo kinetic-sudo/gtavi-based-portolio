@@ -46,27 +46,37 @@ body {
 }
 
 /* Plain CSS so the page looks right even before/without Tailwind utilities */
-html {
-  background: #0a0a0a;
+html { background: #0a0a0a; }
+
+.navbar {
+  position: fixed; inset: 0 0 auto 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 28px; color: #fff;
+}
+.navbar__mono { font-family: var(--font-display); font-weight: 900; font-size: 22px; letter-spacing: .02em; color: #fff; text-decoration: none; }
+.navbar__right { display: flex; align-items: center; gap: 16px; }
+.navbar__pill { font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px; background: #f3efe9; color: #0a0a0a; text-decoration: none; }
+.navbar__menu { display: grid; gap: 6px; background: none; border: 0; padding: 8px; cursor: pointer; }
+.navbar__menu span { display: block; width: 22px; height: 2px; background: #fff; }
+.navbar a:focus-visible, .navbar button:focus-visible, .hero a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+.hero { position: relative; min-height: 100svh; overflow: hidden; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.hero__canvas { position: relative; width: 68vw; max-width: 1400px; aspect-ratio: 16 / 9; }
+.hero__layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; pointer-events: none; }
+.hero__shard, .hero__vi, .hero__gta, .hero__ui { visibility: hidden; }
+.hero__poster, .hero__poster-logo { visibility: hidden; }
+.hero__bar { position: relative; width: 68vw; max-width: 1400px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+.hero__tagline { display: grid; margin: 0; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: 15px; line-height: 1.25; }
+.hero__button { font-size: 14px; font-weight: 600; padding: 9px 22px; border-radius: 999px; background: #f3efe9; color: #0a0a0a; text-decoration: none; }
+.hero__tags { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 14px; }
+.hero__disclaimer { margin: 18px 0 0; font-size: 11px; opacity: .55; text-align: center; padding: 0 16px; }
+
+@media (max-width: 767px) {
+  .hero__canvas { width: 92vw; aspect-ratio: 1 / 1; }
+  .hero__bar { width: 92vw; flex-direction: column; gap: 14px; text-align: center; }
+  .navbar { padding: 16px 18px; }
 }
 
-.stage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  min-height: 100svh;
-  padding: 24px;
-  box-sizing: border-box;
-  background: #0a0a0a;
-  overflow: hidden;
-}
-
-.logo {
-  display: block;
-  width: min(60vw, 700px);
-  height: auto;
-  user-select: none;
-  visibility: hidden; /* GSAP reveals it, no flash before the animation */
-  will-change: transform, opacity;
+@media (prefers-reduced-motion: reduce) {
+  .hero__ui { visibility: visible; }
 }
