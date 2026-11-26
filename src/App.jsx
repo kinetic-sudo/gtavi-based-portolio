@@ -5,41 +5,31 @@ import logo from '/assets/brand/logo-poster.png'
 
 gsap.registerPlugin(useGSAP)
 
-function Logo() {
-  return (
-    <img
-      src={logo}
-      alt="Grand Theft Developer"
-      width="1448"
-      height="1086"
-      className="logo w-[min(80vw,560px)] select-none"
-      draggable="false"
-    />
-  )
-}
-
 export default function App() {
   const root = useRef(null)
 
   useGSAP(
     () => {
-      gsap.from('.logo', {
-        opacity: 0,
-        y: 24,
-        scale: 0.96,
-        duration: 1.2,
-        ease: 'power3.out',
-      })
+      // Scale-in reveal: starts slightly zoomed in and transparent, settles into place
+      gsap.fromTo(
+        '.logo',
+        { autoAlpha: 0, scale: 1.25 },
+        { autoAlpha: 1, scale: 1, duration: 1.6, ease: 'expo.out', delay: 0.15 },
+      )
     },
     { scope: root },
   )
 
   return (
-    <main
-      ref={root}
-      className="flex min-h-screen items-center justify-center bg-bg px-6"
-    >
-      <Logo />
+    <main ref={root} className="stage">
+      <img
+        src={logo}
+        alt="Grand Theft Developer"
+        width="1448"
+        height="1086"
+        className="logo"
+        draggable="false"
+      />
     </main>
   )
 }

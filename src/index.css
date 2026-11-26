@@ -44,3 +44,29 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Plain CSS so the page looks right even before/without Tailwind utilities */
+html {
+  background: #0a0a0a;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+
+.logo {
+  display: block;
+  width: min(60vw, 700px);
+  height: auto;
+  user-select: none;
+  visibility: hidden; /* GSAP reveals it, no flash before the animation */
+  will-change: transform, opacity;
+}
