@@ -1,86 +1,110 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { hero, LINKS } from '../content'
+import { SHARDS, heroUrl, useIsMobile } from '../lib/heroAssets'
 
-const files = import.meta.glob('/assets/site/hero/**/*.avif', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-})
-const url = (set, name) => files[`/assets/site/hero/${set}/${name}.avif`]
-const SHARDS = Array.from({ length: 10 }, (_, i) => `shard-${String(i + 1).padStart(2, '0')}`)
-
-function useIsMobile() {
-  const q = '(max-width: 1023px), (max-aspect-ratio: 1/1)'
-  const [m, setM] = useState(() => window.matchMedia(q).matches)
-  useEffect(() => {
-    const mq = window.matchMedia(q)
-    const on = (e) => setM(e.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  return m
-}
-
-export default function Hero() {
+// Intro timing (seconds after `play` starts, i.e. when the loader begins to fade)
+// read frame by frame from src/references/01-hero-intro.mp4 at ~30fps plus key frames:
+//   shards fly in from +0.3, VI from +0.65, title wipe from +1.25, UI from +1.75,
+//   whole collage brightens until ~+2.5. Easing is fitted by eye to the motion curve.
+// Not yet diffed against the live site (see AGENTS.md "Open differences").
+export default function Hero({ play }) {
   const root = useRef(null)
   const set = useIsMobile() ? 'mobile' : 'desktop'
 
   useGSAP(
     () => {
+      if (!play) return
+      const html = document.documentElement
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const done = () => {
+      const finish = () => {
         // Swap to the poster (the intro's last frame) so nothing flickers
         gsap.set('.hero__poster, .hero__poster-logo', { autoAlpha: 1 })
         gsap.set('.hero__shard, .hero__vi, .hero__gta', { autoAlpha: 0 })
+        gsap.set('.hero__canvas', { clearProps: 'filter' })
       }
       if (reduce) {
+        html.classList.add('ui-in')
         gsap.set('.hero__ui', { autoAlpha: 1 })
-        return done()
+        return finish()
       }
 
-      // Timings below are first-pass estimates read from the intro recording
-      // (src/references): ~0.6s dark, collage converges ~0.6s, VI layer, then title, then UI.
-      // Not yet measured against the live site: see AGENTS.md "Open differences".
-      const tl = gsap.timeline({ delay: 0.6, onComplete: done })
+      const tl = gsap.timeline({ onComplete: finish })
+
+      // 1. Pieces fly in: huge, tilted in 3D, settling with a long ease-out
+      const sign = (i) => (i % 2 ? 1 : -1)
       tl.fromTo(
         '.hero__shard',
         {
-          autoAlpha: 0,
-          scale: 1.18,
-          rotate: (i) => (i % 2 ? 4 : -4),
-          x: (i) => (i % 3 - 1) * 60,
-          y: (i) => (i % 2 ? 40 : -40),
+          scale: 2.2,
+          rotationZ: (i) => sign(i) * (5 + (i % 3) * 2),
+          rotationX: (i) => sign(i + 1) * 22,
+          rotationY: (i) => sign(i) * 18,
+          xPercent: (i) => ((i % 4) - 1.5) * 12,
+          yPercent: (i) => ((i % 3) - 1) * 14,
+          transformPerspective: 1400,
         },
         {
-          autoAlpha: 1,
           scale: 1,
-          rotate: 0,
-          x: 0,
-          y: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          stagger: 0.04,
+          rotationZ: 0,
+          rotationX: 0,
+          rotationY: 0,
+          xPercent: 0,
+          yPercent: 0,
+          duration: 1.5,
+          ease: 'power4.out',
+          stagger: 0.05,
         },
+        0.3,
       )
-        .fromTo('.hero__vi', { autoAlpha: 0, scale: 0.96 }, { autoAlpha: 1, scale: 1, duration: 0.6, ease: 'power2.out' }, '-=0.3')
-        .fromTo('.hero__gta', { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.1')
-        .fromTo('.hero__ui', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.08 }, '-=0.1')
+      tl.fromTo(
+        '.hero__shard',
+        { autoAlpha: 0 },
+        { autoAlpha: 1, duration: 0.6, ease: 'power1.out', stagger: 0.05 },
+        0.3,
+      )
+
+      // 2. Collage brightens slowly while everything else lands
+      tl.fromTo(
+        '.hero__canvas',
+        { filter: 'brightness(0.78)' },
+        { filter: 'brightness(1)', duration: 1.9, ease: 'power1.out' },
+        0.8,
+      )
+
+      // 3. VI mark
+      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.55, ease: 'power2.out' }, 0.65)
+
+      // 4. Title: wipes in top to bottom
+      tl.fromTo(
+        '.hero__gta',
+        { autoAlpha: 0, clipPath: 'inset(0% 0% 64% 0%)' },
+        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.6, ease: 'power1.inOut' },
+        1.25,
+      )
+
+      // 5. Navbar + bottom row fade up
+      tl.call(() => html.classList.add('ui-in'), null, 1.75)
+      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.7, ease: 'power2.out' }, 1.75)
     },
-    { scope: root, dependencies: [set] },
+    { scope: root, dependencies: [set, play] },
   )
 
   return (
     <section id="top" ref={root} className="hero">
       <div className="hero__canvas">
-        <img className="hero__layer hero__poster" src={url(set, 'poster')} alt="" />
+        <img className="hero__layer hero__poster" src={heroUrl(set, 'poster')} alt="" />
         {SHARDS.map((s) => (
-          <img key={s} className="hero__layer hero__shard" src={url(set, s)} alt="" />
+          <img key={s} className="hero__layer hero__shard" src={heroUrl(set, s)} alt="" />
         ))}
-        <img className="hero__layer hero__vi" src={url(set, 'logo-vi')} alt="" />
-        <img className="hero__layer hero__gta" src={url(set, 'logo-gta')} alt="" />
-        <img className="hero__layer hero__poster-logo" src={url(set, 'poster-logo')} alt="Grand Theft Developer" />
+        <img className="hero__layer hero__vi" src={heroUrl(set, 'logo-vi')} alt="" />
+        <img className="hero__layer hero__gta" src={heroUrl(set, 'logo-gta')} alt="" />
+        <img
+          className="hero__layer hero__poster-logo"
+          src={heroUrl(set, 'poster-logo')}
+          alt="Grand Theft Developer"
+        />
       </div>
 
       <div className="hero__bar">

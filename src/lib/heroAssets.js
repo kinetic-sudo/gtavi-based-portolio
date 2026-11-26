@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const files = import.meta.glob('../assets/site/hero/**/*.avif', {
+const files = import.meta.glob('/assets/site/hero/**/*.avif', {
   eager: true,
   query: '?url',
   import: 'default',
