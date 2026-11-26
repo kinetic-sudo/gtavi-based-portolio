@@ -1,17 +1,20 @@
 import { useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
+import logo from '/assets/brand/logo-poster.png'
 
 gsap.registerPlugin(useGSAP)
 
-// Placeholder wordmark. Swap this for your own logo asset, e.g.
-//   import logo from './assets/logo.svg'
-//   <img src={logo} alt="Logo" className="logo w-[min(70vw,520px)]" />
 function Logo() {
   return (
-    <h1 className="logo select-none font-display text-[clamp(64px,14vw,180px)] font-black uppercase leading-none tracking-tight">
-      Your Logo
-    </h1>
+    <img
+      src={logo}
+      alt="Grand Theft Developer"
+      width="1448"
+      height="1086"
+      className="logo w-[min(80vw,560px)] select-none"
+      draggable="false"
+    />
   )
 }
 
