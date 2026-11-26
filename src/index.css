@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Barlow Condensed';
-  src: url('/assets/fonts/barlow-condensed-700.woff2') format('woff2');
+  src: url('./assets/fonts/barlow-condensed-700.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: 'Barlow Condensed';
-  src: url('/assets/fonts/barlow-condensed-900.woff2') format('woff2');
+  src: url('./assets/fonts/barlow-condensed-900.woff2') format('woff2');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -18,7 +18,7 @@
 
 @font-face {
   font-family: 'Outfit';
-  src: url('/assets/fonts/outfit-variable.woff2') format('woff2');
+  src: url('./assets/fonts/outfit-variable.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -53,6 +53,8 @@ html { background: #0a0c1a; }
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 28px; color: #fff;
 }
+.navbar { opacity: 0; transition: opacity .7s cubic-bezier(.215,.61,.355,1); }
+html.ui-in .navbar { opacity: 1; }
 .navbar__mono { font-family: 'Barlow Condensed', 'Outfit', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: .02em; color: #fff; text-decoration: none; }
 .navbar__right { display: flex; align-items: center; gap: 16px; }
 .navbar__pill { font-family: 'Outfit', sans-serif; opacity: 0; visibility: hidden; transition: opacity .3s; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px; background: #ffb2c9; color: #0a0c1a; text-decoration: none; }
@@ -83,6 +85,11 @@ html { background: #0a0c1a; }
 @media (max-width: 600px) {
   .hero__canvas, .hero__bar { width: 88vw; }
 }
+
+/* Loader: dark screen with the wordmark shape, filling in as assets load */
+.loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #0a0c1a; }
+.loader__shape { position: relative; width: min(46vw, 420px); aspect-ratio: 1425 / 867; background: #212020; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
+.loader__fill { position: absolute; inset: 0; background: #5a5a6e; transition: clip-path .35s ease-out; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero__ui { visibility: visible; }
