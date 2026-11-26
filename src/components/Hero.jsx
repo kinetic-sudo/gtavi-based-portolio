@@ -3,16 +3,16 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { hero, LINKS } from '../content'
 
-const files = import.meta.glob('../assets/site/hero/**/*.avif', {
+const files = import.meta.glob('/assets/site/hero/**/*.avif', {
   eager: true,
   query: '?url',
   import: 'default',
 })
-const url = (set, name) => files[`../assets/site/hero/${set}/${name}.avif`]
+const url = (set, name) => files[`/assets/site/hero/${set}/${name}.avif`]
 const SHARDS = Array.from({ length: 10 }, (_, i) => `shard-${String(i + 1).padStart(2, '0')}`)
 
 function useIsMobile() {
-  const q = '(max-width: 767px)'
+  const q = '(max-width: 1023px), (max-aspect-ratio: 1/1)'
   const [m, setM] = useState(() => window.matchMedia(q).matches)
   useEffect(() => {
     const mq = window.matchMedia(q)
