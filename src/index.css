@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Barlow Condensed';
-  src: url('./assets/fonts/barlow-condensed-700.woff2') format('woff2');
+  src: url('/assets/fonts/barlow-condensed-700.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: 'Barlow Condensed';
-  src: url('./assets/fonts/barlow-condensed-900.woff2') format('woff2');
+  src: url('/assets/fonts/barlow-condensed-900.woff2') format('woff2');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -18,7 +18,7 @@
 
 @font-face {
   font-family: 'Outfit';
-  src: url('./assets/fonts/outfit-variable.woff2') format('woff2');
+  src: url('/assets/fonts/outfit-variable.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -86,10 +86,9 @@ html.ui-in .navbar { opacity: 1; }
   .hero__canvas, .hero__bar { width: 88vw; }
 }
 
-/* Loader: dark screen with the wordmark shape, filling in as assets load */
-.loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #0a0c1a; }
-.loader__shape { position: relative; width: min(46vw, 420px); aspect-ratio: 1425 / 867; background: #212020; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
-.loader__fill { position: absolute; inset: 0; background: #5a5a6e; transition: clip-path .35s ease-out; }
+/* Loader: slate gradient (sampled from the reference recording) with a pulsing wordmark outline */
+.loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: linear-gradient(180deg, #292735 0%, #21202b 50%, #1c1d28 100%); }
+.loader__mark { width: clamp(180px, 18vw, 260px); height: auto; overflow: visible; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero__ui { visibility: visible; }
