@@ -7,7 +7,7 @@ const files = import.meta.glob('/assets/site/hero/**/*.avif', {
 })
 
 export const SHARDS = Array.from({ length: 10 }, (_, i) => `shard-${String(i + 1).padStart(2, '0')}`)
-export const heroUrl = (set, name) => files[`../assets/site/hero/${set}/${name}.avif`]
+export const heroUrl = (set, name) => files[`/assets/site/hero/${set}/${name}.avif`]
 export const heroUrls = (set) =>
   ['poster', 'poster-logo', 'logo-vi', 'logo-gta', ...SHARDS].map((n) => heroUrl(set, n))
 
