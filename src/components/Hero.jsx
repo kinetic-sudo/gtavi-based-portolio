@@ -41,10 +41,11 @@ export default function Hero({ play }) {
 
       const tl = gsap.timeline({ onComplete: finish })
 
+      // Order: pieces fly in -> VI -> wordmark -> page UI (loader has already finished).
       // Timings read frame by frame from the target video (30fps sheets), t=0 is when
-      // `play` starts; pieces first appear at +0.3 (video 2.68s):
-      //   pieces: start ~2.1x too big, dim and tilted, shrink steadily to size in ~0.7s
-      //   VI mark +0.97, title wipes in lines +1.15..1.7, bottom row +1.7..2.2,
+      // `play` starts (loader gone); pieces first appear at +0.3 (video 2.68s):
+      //   pieces: start ~2.3x too big, dim and tilted, each shrinks to size in ~0.6s,
+      //   all landed by ~+1.0; VI +1.0; wordmark wipes in +1.2..1.75; page UI +1.75..2.25;
       //   whole collage brightens from ~0.45 to 1 over ~2.3s.
 
       // 1. Individual pieces fly in and lock together. Right-centre pieces land first.
@@ -63,16 +64,16 @@ export default function Hero({ play }) {
           rotationZ: 0,
           rotationX: 0,
           rotationY: 0,
-          duration: 0.7,
+          duration: 0.6,
           ease: 'sine.out',
-          stagger: { each: 0.025, from: 'random' },
+          stagger: { each: 0.015, from: 'random' },
         },
         0.3,
       )
       tl.fromTo(
         '.hero__shard',
         { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.45, ease: 'power1.out', stagger: { each: 0.025, from: 'random' } },
+        { autoAlpha: 1, duration: 0.45, ease: 'power1.out', stagger: { each: 0.015, from: 'random' } },
         0.3,
       )
 
@@ -85,19 +86,19 @@ export default function Hero({ play }) {
       )
 
       // 3. VI mark
-      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: 'power1.out' }, 0.97)
+      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: 'power1.out' }, 1.0)
 
       // 4. Title: wipes in top to bottom, line by line
       tl.fromTo(
         '.hero__gta',
         { autoAlpha: 0, clipPath: 'inset(0% 0% 64% 0%)' },
         { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.55, ease: 'none' },
-        1.15,
+        1.2,
       )
 
       // 5. Navbar + bottom row fade up last
-      tl.call(() => html.classList.add('ui-in'), null, 1.7)
-      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.7)
+      tl.call(() => html.classList.add('ui-in'), null, 1.75)
+      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.75)
     },
     { scope: root, dependencies: [set, play] },
   )
