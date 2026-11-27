@@ -8,9 +8,7 @@ gsap.registerPlugin(useGSAP)
 
 // Intro timing (seconds after `play` starts, i.e. when the loader begins to fade)
 // read frame by frame from src/references/01-hero-intro.mp4 at ~30fps plus key frames:
-//   shards fly in from +0.3, VI from +0.65, title wipe from +1.25, UI from +1.75,
-//   whole collage brightens until ~+2.5. Easing is fitted by eye to the motion curve.
-// Not yet diffed against the live site (see AGENTS.md "Open differences").
+// See the timeline below for the numbers. Not yet diffed against the target (AGENTS.md).
 export default function Hero({ play }) {
   const root = useRef(null)
   const set = useIsMobile() ? 'mobile' : 'desktop'
@@ -19,11 +17,16 @@ export default function Hero({ play }) {
     () => {
       if (!play) return
       const html = document.documentElement
-      // Respect the OS "Reduce motion" setting (AGENTS.md). Add ?motion=1 to the URL to force
-      // the full intro anyway, e.g. when testing on a Mac that has Reduce motion switched on.
-      const forced = /[?&]motion=1/.test(window.location.search)
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !forced
-      if (import.meta.env.DEV) console.info('[hero] intro', { reduce, forced })
+      // Visitors with the OS "Reduce motion" setting get the static poster (AGENTS.md).
+      // In dev (npm run dev) the full intro always plays, so a developer machine with Reduce
+      // motion switched on still sees it. ?motion=1 forces it in a production build too.
+      const osReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const forced = import.meta.env.DEV || /[?&]motion=1/.test(window.location.search)
+      const reduce = osReduce && !forced
+      if (import.meta.env.DEV) {
+        console.info('[hero] intro playing', { osReduceMotion: osReduce, reduce })
+        if (osReduce) console.warn('[hero] OS "Reduce motion" is ON: production builds will show the static poster instead of the intro.')
+      }
       const finish = () => {
         // Swap to the poster (the intro's last frame) so nothing flickers
         gsap.set('.hero__poster, .hero__poster-logo', { autoAlpha: 1 })
@@ -38,17 +41,21 @@ export default function Hero({ play }) {
 
       const tl = gsap.timeline({ onComplete: finish })
 
-      // 1. Pieces fly in: huge, tilted in 3D, settling with a long ease-out
+      // Timings read frame by frame from the target video (30fps sheets), t=0 is when
+      // `play` starts; pieces first appear at +0.3 (video 2.68s):
+      //   pieces: start ~2.1x too big, dim and tilted, shrink steadily to size in ~0.7s
+      //   VI mark +0.97, title wipes in lines +1.15..1.7, bottom row +1.7..2.2,
+      //   whole collage brightens from ~0.45 to 1 over ~2.3s.
+
+      // 1. Individual pieces fly in and lock together. Right-centre pieces land first.
       const sign = (i) => (i % 2 ? 1 : -1)
       tl.fromTo(
         '.hero__shard',
         {
-          scale: 2.2,
-          rotationZ: (i) => sign(i) * (5 + (i % 3) * 2),
-          rotationX: (i) => sign(i + 1) * 22,
-          rotationY: (i) => sign(i) * 18,
-          xPercent: (i) => ((i % 4) - 1.5) * 12,
-          yPercent: (i) => ((i % 3) - 1) * 14,
+          scale: 2.3,
+          rotationZ: (i) => sign(i) * (3 + (i % 3) * 1.5),
+          rotationX: (i) => sign(i + 1) * 14,
+          rotationY: (i) => sign(i) * 12,
           transformPerspective: 1400,
         },
         {
@@ -56,43 +63,41 @@ export default function Hero({ play }) {
           rotationZ: 0,
           rotationX: 0,
           rotationY: 0,
-          xPercent: 0,
-          yPercent: 0,
-          duration: 1.5,
-          ease: 'power4.out',
-          stagger: 0.05,
+          duration: 0.7,
+          ease: 'sine.out',
+          stagger: { each: 0.025, from: 'random' },
         },
         0.3,
       )
       tl.fromTo(
         '.hero__shard',
         { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.6, ease: 'power1.out', stagger: 0.05 },
+        { autoAlpha: 1, duration: 0.45, ease: 'power1.out', stagger: { each: 0.025, from: 'random' } },
         0.3,
       )
 
-      // 2. Collage brightens slowly while everything else lands
+      // 2. Whole collage starts dim and brightens slowly
       tl.fromTo(
         '.hero__canvas',
-        { filter: 'brightness(0.78)' },
-        { filter: 'brightness(1)', duration: 1.9, ease: 'power1.out' },
-        0.8,
+        { filter: 'brightness(0.45)' },
+        { filter: 'brightness(1)', duration: 2.3, ease: 'sine.inOut' },
+        0.3,
       )
 
       // 3. VI mark
-      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.55, ease: 'power2.out' }, 0.65)
+      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: 'power1.out' }, 0.97)
 
-      // 4. Title: wipes in top to bottom
+      // 4. Title: wipes in top to bottom, line by line
       tl.fromTo(
         '.hero__gta',
         { autoAlpha: 0, clipPath: 'inset(0% 0% 64% 0%)' },
-        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.6, ease: 'power1.inOut' },
+        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.55, ease: 'none' },
         1.15,
       )
 
-      // 5. Navbar + bottom row fade up
-      tl.call(() => html.classList.add('ui-in'), null, 1.75)
-      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.7, ease: 'power2.out' }, 1.75)
+      // 5. Navbar + bottom row fade up last
+      tl.call(() => html.classList.add('ui-in'), null, 1.7)
+      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.7)
     },
     { scope: root, dependencies: [set, play] },
   )
