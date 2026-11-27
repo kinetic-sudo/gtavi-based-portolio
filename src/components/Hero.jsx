@@ -4,6 +4,8 @@ import { useGSAP } from '@gsap/react'
 import { hero, LINKS } from '../content'
 import { SHARDS, heroUrl, useIsMobile } from '../lib/heroAssets'
 
+gsap.registerPlugin(useGSAP)
+
 // Intro timing (seconds after `play` starts, i.e. when the loader begins to fade)
 // read frame by frame from src/references/01-hero-intro.mp4 at ~30fps plus key frames:
 //   shards fly in from +0.3, VI from +0.65, title wipe from +1.25, UI from +1.75,
@@ -17,7 +19,11 @@ export default function Hero({ play }) {
     () => {
       if (!play) return
       const html = document.documentElement
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      // Respect the OS "Reduce motion" setting (AGENTS.md). Add ?motion=1 to the URL to force
+      // the full intro anyway, e.g. when testing on a Mac that has Reduce motion switched on.
+      const forced = /[?&]motion=1/.test(window.location.search)
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !forced
+      if (import.meta.env.DEV) console.info('[hero] intro', { reduce, forced })
       const finish = () => {
         // Swap to the poster (the intro's last frame) so nothing flickers
         gsap.set('.hero__poster, .hero__poster-logo', { autoAlpha: 1 })
@@ -81,7 +87,7 @@ export default function Hero({ play }) {
         '.hero__gta',
         { autoAlpha: 0, clipPath: 'inset(0% 0% 64% 0%)' },
         { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.6, ease: 'power1.inOut' },
-        1.25,
+        1.15,
       )
 
       // 5. Navbar + bottom row fade up
