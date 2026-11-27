@@ -9,8 +9,9 @@ const pathD = /<path[^>]*\sd="([^"]+)"/.exec(loaderSvg)?.[1]
 
 // Pulse and exit timing read from the reference recording (01-hero-intro.mp4):
 //   faint outline ~0.5s, brightens over ~0.25s, brief hold, decays over ~1.4s to a faint tail;
-//   on exit the outline fades in ~0.3s, then the screen fades as the intro starts (+0.5s).
-export default function Loader({ ready }) {
+//   on exit the outline fades in ~0.3s, then the screen fades (0.5s). The intro starts only after
+//   the loader is completely gone (onDone), so the order is: loader, pieces, VI, wordmark, page UI.
+export default function Loader({ ready, onDone }) {
   const root = useRef(null)
   const mark = useRef(null)
   const pulse = useRef(null)
@@ -35,7 +36,12 @@ export default function Loader({ ready }) {
       if (!ready) return
       pulse.current?.kill()
       gsap
-        .timeline({ onComplete: () => setGone(true) })
+        .timeline({
+          onComplete: () => {
+            setGone(true)
+            onDone?.() // the loader is completely gone: the intro may start
+          },
+        })
         .to(mark.current, { strokeOpacity: 0, duration: 0.3, ease: 'power1.out' })
         .to(root.current, { autoAlpha: 0, duration: 0.5, ease: 'power1.out' }, 0.5)
     },
