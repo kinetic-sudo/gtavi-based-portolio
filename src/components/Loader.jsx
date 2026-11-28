@@ -14,7 +14,7 @@ const [vx, vy, vw, vh] = viewBox.split(/\s+/).map(Number)
 // Times below are seconds after the loader starts; measured from the recording at 30fps.
 const BAND = 0.3 // half-width of the highlight, as a fraction of the diagonal
 
-export default function Loader({ ready, onDone }) {
+export default function Loader({ ready, onFadeStart }) {
   const root = useRef(null)
   const base = useRef(null)
   const shine = useRef(null)
@@ -56,13 +56,10 @@ export default function Loader({ ready, onDone }) {
       if (!ready) return
       loop.current?.kill()
       gsap
-        .timeline({
-          onComplete: () => {
-            setGone(true)
-            onDone?.() // loader completely gone: the intro may start
-          },
-        })
+        .timeline({ onComplete: () => setGone(true) })
         .to([base.current, shine.current], { opacity: 0, strokeOpacity: 0, duration: 0.3, ease: 'power1.out' })
+        // the screen fades and, at the same moment, the intro starts underneath it
+        .call(() => onFadeStart?.(), null, 0.5)
         .to(root.current, { autoAlpha: 0, duration: 0.5, ease: 'power1.out' }, 0.5)
     },
     { dependencies: [ready] },

@@ -31,7 +31,6 @@ export default function Hero({ play }) {
         // Swap to the poster (the intro's last frame). The poster is shown first and the
         // animated layers are hidden two frames later, so the swap can never flash.
         gsap.set('.hero__poster, .hero__poster-logo', { autoAlpha: 1 })
-        gsap.set('.hero__canvas', { clearProps: 'filter' })
         requestAnimationFrame(() =>
           requestAnimationFrame(() => gsap.set('.hero__shard, .hero__vi, .hero__gta', { autoAlpha: 0 })),
         )
@@ -42,18 +41,16 @@ export default function Hero({ play }) {
         return finish()
       }
 
+      // Order: pieces fly in -> VI -> wordmark -> page UI. t=0 is when the loader's screen starts to
+      // fade (the intro plays underneath it). Timings read from the target video (30fps sheets):
+      //   pieces: start ~2.3x too big, dim and tilted, each shrinks to size in ~0.6s (from +0.1);
+      //   VI +0.55..0.8; wordmark wipes in +0.6..1.0 (logo-vi has a dark backing shaped like the
+      //   wordmark, so the wipe must follow right behind the VI or the black shape lingers);
+      //   page UI +1.05..1.55; collage brightens from ~0.45 to 1 over ~1.6s via a black veil.
+      const sign = (i) => (i % 2 ? 1 : -1)
       const tl = gsap.timeline({ onComplete: finish })
 
-      // Order: pieces fly in -> VI -> wordmark -> page UI (loader has already finished).
-      // Timings read frame by frame from the target video (30fps sheets), t=0 is when
-      // `play` starts (loader gone); pieces first appear at +0.3 (video 2.68s):
-      //   pieces: start ~2.3x too big, dim and tilted, each shrinks to size in ~0.6s;
-      //   the dark centre must not linger, so the VI mark starts while the last pieces land:
-      //   VI +0.6..0.9 (done before the wordmark starts), wordmark wipes in +0.9..1.35, page UI +1.4..1.9;
-      //   whole collage brightens from ~0.45 to 1 over ~1.8s.
-
-      // 1. Individual pieces fly in and lock together. Right-centre pieces land first.
-      const sign = (i) => (i % 2 ? 1 : -1)
+      // 1. Individual pieces fly in and lock together
       tl.fromTo(
         '.hero__shard',
         {
@@ -70,39 +67,35 @@ export default function Hero({ play }) {
           rotationY: 0,
           duration: 0.6,
           ease: 'sine.out',
+          force3D: true,
           stagger: { each: 0.015, from: 'random' },
         },
-        0.3,
+        0.1,
       )
       tl.fromTo(
         '.hero__shard',
         { autoAlpha: 0 },
         { autoAlpha: 1, duration: 0.45, ease: 'power1.out', stagger: { each: 0.015, from: 'random' } },
-        0.3,
+        0.1,
       )
 
-      // 2. Whole collage starts dim and brightens slowly
-      tl.fromTo(
-        '.hero__canvas',
-        { filter: 'brightness(0.45)' },
-        { filter: 'brightness(1)', duration: 1.8, ease: 'sine.inOut' },
-        0.3,
-      )
+      // 2. Dim start, brightening slowly (black veil fades out)
+      tl.fromTo('.hero__veil', { opacity: 0.55 }, { opacity: 0, duration: 1.6, ease: 'sine.inOut' }, 0.1)
 
       // 3. VI mark
-      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, ease: 'power1.out' }, 0.6)
+      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25, ease: 'power1.out' }, 0.55)
 
-      // 4. Title: wipes in top to bottom, line by line
+      // 4. Wordmark wipes in top to bottom, right behind the VI
       tl.fromTo(
         '.hero__gta',
         { autoAlpha: 0, clipPath: 'inset(0% 0% 64% 0%)' },
-        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.45, ease: 'none' },
-        0.9,
+        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.4, ease: 'none' },
+        0.6,
       )
 
       // 5. Navbar + bottom row fade up last
-      tl.call(() => html.classList.add('ui-in'), null, 1.4)
-      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.4)
+      tl.call(() => html.classList.add('ui-in'), null, 1.05)
+      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.05)
     },
     { scope: root, dependencies: [set, play] },
   )
@@ -112,14 +105,18 @@ export default function Hero({ play }) {
       <div className="hero__canvas">
         <img className="hero__layer hero__poster" src={heroUrl(set, 'poster')} alt="" />
         {SHARDS.map((s) => (
-          <img key={s} className="hero__layer hero__shard" src={heroUrl(set, s)} alt="" />
+          <img key={s} className="hero__layer hero__shard" style={{ willChange: 'transform, opacity' }} src={heroUrl(set, s)} alt="" />
         ))}
         <img className="hero__layer hero__vi" src={heroUrl(set, 'logo-vi')} alt="" />
-        <img className="hero__layer hero__gta" src={heroUrl(set, 'logo-gta')} alt="" />
+        <img className="hero__layer hero__gta" style={{ willChange: 'clip-path, opacity' }} src={heroUrl(set, 'logo-gta')} alt="" />
         <img
           className="hero__layer hero__poster-logo"
           src={heroUrl(set, 'poster-logo')}
           alt="Grand Theft Developer"
+        />
+        <div
+          className="hero__veil"
+          style={{ position: 'absolute', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none' }}
         />
       </div>
 
