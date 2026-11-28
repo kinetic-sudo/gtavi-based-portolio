@@ -28,10 +28,13 @@ export default function Hero({ play }) {
         if (osReduce) console.warn('[hero] OS "Reduce motion" is ON: production builds will show the static poster instead of the intro.')
       }
       const finish = () => {
-        // Swap to the poster (the intro's last frame) so nothing flickers
+        // Swap to the poster (the intro's last frame). The poster is shown first and the
+        // animated layers are hidden two frames later, so the swap can never flash.
         gsap.set('.hero__poster, .hero__poster-logo', { autoAlpha: 1 })
-        gsap.set('.hero__shard, .hero__vi, .hero__gta', { autoAlpha: 0 })
         gsap.set('.hero__canvas', { clearProps: 'filter' })
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => gsap.set('.hero__shard, .hero__vi, .hero__gta', { autoAlpha: 0 })),
+        )
       }
       if (reduce) {
         html.classList.add('ui-in')
@@ -44,9 +47,10 @@ export default function Hero({ play }) {
       // Order: pieces fly in -> VI -> wordmark -> page UI (loader has already finished).
       // Timings read frame by frame from the target video (30fps sheets), t=0 is when
       // `play` starts (loader gone); pieces first appear at +0.3 (video 2.68s):
-      //   pieces: start ~2.3x too big, dim and tilted, each shrinks to size in ~0.6s,
-      //   all landed by ~+1.0; VI +1.0; wordmark wipes in +1.2..1.75; page UI +1.75..2.25;
-      //   whole collage brightens from ~0.45 to 1 over ~2.3s.
+      //   pieces: start ~2.3x too big, dim and tilted, each shrinks to size in ~0.6s;
+      //   the dark centre must not linger, so the VI mark starts while the last pieces land:
+      //   VI +0.6..0.9 (done before the wordmark starts), wordmark wipes in +0.9..1.35, page UI +1.4..1.9;
+      //   whole collage brightens from ~0.45 to 1 over ~1.8s.
 
       // 1. Individual pieces fly in and lock together. Right-centre pieces land first.
       const sign = (i) => (i % 2 ? 1 : -1)
@@ -81,24 +85,24 @@ export default function Hero({ play }) {
       tl.fromTo(
         '.hero__canvas',
         { filter: 'brightness(0.45)' },
-        { filter: 'brightness(1)', duration: 2.3, ease: 'sine.inOut' },
+        { filter: 'brightness(1)', duration: 1.8, ease: 'sine.inOut' },
         0.3,
       )
 
       // 3. VI mark
-      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: 'power1.out' }, 1.0)
+      tl.fromTo('.hero__vi', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, ease: 'power1.out' }, 0.6)
 
       // 4. Title: wipes in top to bottom, line by line
       tl.fromTo(
         '.hero__gta',
         { autoAlpha: 0, clipPath: 'inset(0% 0% 64% 0%)' },
-        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.55, ease: 'none' },
-        1.2,
+        { autoAlpha: 1, clipPath: 'inset(0% 0% 20% 0%)', duration: 0.45, ease: 'none' },
+        0.9,
       )
 
       // 5. Navbar + bottom row fade up last
-      tl.call(() => html.classList.add('ui-in'), null, 1.75)
-      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.75)
+      tl.call(() => html.classList.add('ui-in'), null, 1.4)
+      tl.fromTo('.hero__ui', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, ease: 'power1.out' }, 1.4)
     },
     { scope: root, dependencies: [set, play] },
   )
@@ -120,21 +124,21 @@ export default function Hero({ play }) {
       </div>
 
       <div className="hero__bar">
-        <p className="hero__ui hero__tagline">
+        <p className="hero__ui hero__tagline" style={{ visibility: 'hidden' }}>
           {hero.tagline.map((l) => (
             <span key={l}>{l}</span>
           ))}
         </p>
-        <a href={LINKS.hire} className="hero__ui hero__button">
+        <a href={LINKS.hire} className="hero__ui hero__button" style={{ visibility: 'hidden' }}>
           {hero.button}
         </a>
-        <ul className="hero__ui hero__tags">
+        <ul className="hero__ui hero__tags" style={{ visibility: 'hidden' }}>
           {hero.tags.map((t) => (
             <li key={t}>{t}</li>
           ))}
         </ul>
       </div>
-      <p className="hero__ui hero__disclaimer">{hero.disclaimer}</p>
+      <p className="hero__ui hero__disclaimer" style={{ visibility: 'hidden' }}>{hero.disclaimer}</p>
     </section>
   )
 }

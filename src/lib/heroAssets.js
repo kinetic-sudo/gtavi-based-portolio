@@ -29,7 +29,7 @@ const FONTS = [
   "400 16px 'Outfit'",
   "500 16px 'Outfit'",
 ]
-const MIN_MS = 500 // never a flash: loader stays at least this long
+const MIN_MS = 2000 // the loader always plays its whole shine (reference loader shows ~3s)
 const MAX_MS = 15000 // failsafe if something never loads
 
 // Resolves `ready` once fonts + images have loaded (and decoded).
